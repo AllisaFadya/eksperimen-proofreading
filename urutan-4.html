@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Eksperimen Proofreading - Urutan 4</title>
+
+    <script src="https://unpkg.com/jspsych@7.3.4"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        margin: 0;
+        background-color: #0f172a;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      #jspsych-target {
+        width: 100vw;
+        min-height: 100vh;
+        background-color: #0f172a;
+      }
+
+      .jspsych-display-element {
+        justify-content: flex-start !important;
+        align-items: center !important;
+        overflow-y: auto !important;
+      }
+
+      .jspsych-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: center !important;
+      }
+
+      .text-container {
+        width: 92%;
+        max-width: 92%;
+        margin: 0 auto;
+        padding: 100px 20px 40px 20px;
+        font-size: 21px;
+        line-height: 2.1;
+        color: #f8fafc;
+        text-align: justify;
+      }
+
+      .word {
+        display: inline-block;
+        padding: 2px 4px;
+        margin: 0 1px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.1s;
+      }
+
+      .word:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .word.clicked {
+        background-color: rgba(148, 163, 184, 0.4);
+        text-decoration: underline;
+        text-decoration-color: #cbd5e1;
+      }
+
+      .timer-zone {
+        position: fixed;
+        top: 30px;
+        left: 40px;
+        font-family: monospace;
+        font-size: 18px;
+        color: #94a3b8;
+        z-index: 100;
+        background-color: rgba(15, 23, 42, 0.9);
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+      }
+
+      .popup-notification {
+        position: fixed;
+        top: 30px;
+        right: 40px;
+        width: 520px;
+        height: 150px;
+        background: #f0f4fa;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      .popup-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #94a3b8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+
+      .popup-content {
+        margin-left: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: left;
+      }
+
+      .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 4px;
+        text-align: left;
+      }
+
+      .popup-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #1e293b;
+      }
+
+      .popup-time {
+        font-size: 16px;
+        color: #64748b;
+      }
+
+      .popup-message {
+        font-size: 22px;
+        color: #334155;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: left;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="jspsych-target"></div>
+
+    <script>
+      const notifications = [
+        {
+          sender: "Dina",
+          msg: "Besok jadi ketemu di kantin kampus jam sepuluh pagi, ya?",
+        },
+        {
+          sender: "Rafi",
+          msg: "Kamu sudah lihat pengumuman dari kampus yang dikirim tadi?",
+        },
+        {
+          sender: "Kelompok KP",
+          msg: "Waktu bimbingan minggu depan sudah dipindah ke hari Kamis.",
+        },
+        {
+          sender: "Ibu",
+          msg: "Nanti pulang jam berapa? Ibu sudah masak makan malam di rumah.",
+        },
+        {
+          sender: "Bima",
+          msg: "Foto kegiatan kemarin sudah aku kirim ke grup angkatan tadi.",
+        },
+        {
+          sender: "Sinta",
+          msg: "Boleh pinjam catatan kuliah hari Selasa kemarin sebentar saja?",
+        },
+        {
+          sender: "Pesanan",
+          msg: "Pesanan makananmu sedang dalam perjalanan dan segera tiba.",
+        },
+        {
+          sender: "Raka",
+          msg: "Malam ini jadi nonton bersama di rumah Alvin atau tidak?",
+        },
+        {
+          sender: "Grup Angkatan",
+          msg: "Ada yang punya kontak dosen pembimbing untuk bimbingan nanti?",
+        },
+        {
+          sender: "Nisa",
+          msg: "Terima kasih bantuannya kemarin, penjelasanmu sangat menolong.",
+        },
+        {
+          sender: "Alvin",
+          msg: "Tautan rapat sudah dikirim ke surel, silakan dicek sekarang.",
+        },
+        {
+          sender: "Hana",
+          msg: "Nanti sore aku lewat depan kampus, kamu mau titip sesuatu?",
+        },
+      ];
+
+      const POPUP_SCHEDULE_SEC = [
+        15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 160, 170,
+      ];
+
+      const rawTextA =
+        "Studi waktu adalah teknik pengukuran kerja yang digunakan untuk menentukan lamanya waktu yang dibutuhkan seorang pekerja terlatih untuk menyelesaikan suatu pekerjaan. Pengukuran dilakukan dengan mengamati pekerjaan secara langsnug dan mencatat waktu setiap elemen kerjanya dengan teliti. Tujuan utama studi waktu adalah menetapkn waktu baku untuk pekerjaan tersebut dalam kondisi kerja yang wajar. Waktu baku dipakai sebagai dasar perencanaan jadual produksi dan penentuan jumlah tenaga kerja yang dibutuhkan pada setiap bagian. Pelaksanaan studi waktu diawali dengan memilih pekerjaan yang akan diukur dan pekerja yang memenuhi kriteria, misalnya cukup berpengallaman dan bekerja dengan kecepatan wajar. Pekerjaan kemudian dibagi menjadi elemen-elemen kecil agar lebih mudah dicatat dan diukur. Pengamat mencatat waktu setiap elemen secara berulang, lalu data pengamatan dianalisa untuk mengetahui keragamannya dari satu pengukuran ke pengukuran berikutnya. Setelah itu, kecepatan kerja dinilai secara obyektif untuk menentukan waktu normal yang dipakai dalam perhitungan. Alat yang umum digunakan dalam studi waktu adalah jam henti, lembar pengamatan, dan papan alas pencatat yang dibawa sendiri oleh pengamat. Kamera perekam juga dapat membantu karena rekamamnya mudah diputar ulang untuk memeriksa hasil pengukuran secara lebih rinci. Pengukuran dapat dilakukan secara berkelanjutan atau berulang, sesuai dengan karakter aktifitas yang diamati dan lamanya siklus kerja. Pemilihan alat sebaiknya disesuaikan dengan kebutuhna pengamatan dan tingkat ketelitian yang diharapkan oleh pihak perusahaan. Manfaat studi waktu dirasakan oleh perusahaan maupun pekerja dalam kegiatan operasional perusahaan sehari-hari. Perusahaan memperoleh dasar yang jelas untuk merencanakan kapasitas, menyusun target produksi, dan membandingkan beberapa alternatif praktek kerja secara menyeluruh. Pekerja mendapat standar kerja yang wajar dan terukur sehingga beban pekerjaan dapat dibagi secara lebih seimbag di antara anggota tim yang bekerja pada bagian yang sama. Standar tersebut juga membantu penilaian ketrampilan pekerja secara adil, jelas, dan transparan. Beberapa hal dapat mempengaruhi hasil studi waktu dan perlu diperhatikan sejak awal oleh peneliti maupun perusahaan. Pekerja yang merasa sedang diamati sering bekerja tidak seperti biasanya selama pengukuran berlangsung, sehingga data menjadi kurang mewakilli kondisi sebenarnya. Penilaian kecepatan kerja juga bersifat relatif dan bergantung pada pengalaman pengamat yang melakukam pengukuran di lapangan. Karena itu, pengukuran perlu dilakukan berulang kali dan hasilnya diperiksa dengan cermat sebelum dijadikan acuan bagi pekerja lain.";
+      const targetWordsA = [
+        "langsnug",
+        "menetapkn",
+        "jadual",
+        "berpengallaman",
+        "dianalisa",
+        "obyektif",
+        "rekamamnya",
+        "aktifitas",
+        "kebutuhna",
+        "praktek",
+        "seimbag",
+        "ketrampilan",
+        "mempengaruhi",
+        "mewakilli",
+        "melakukam",
+      ];
+
+      const rawTextB =
+        "Studi gerak adalah teknik pengkajian yang digunakan untuk mempelajari gerakan tubuh yang dilakukan pekerja saat menyelesaikan suatu pekerjaan. Kegiatan ini dilakukan dengan mengamtai pekerjaan secara langsung atau melalui rekaman yang dibuat selama proses kerja berlangsung. Tujuan utama studi gerak adalah menemukan metoda kerja yang lebih sederhana dan efisien bagi pekerja. Gerakan yang berlebihan dihilangkan atau digabungkn agar pekerjaan dapat diselesaikan dengan usaha yang lebih sedikit dan waktu yang lebih singkat. Pelaksanaan studi gerak diawali dengan memilih pekerjaan yang akan dikaji dan merekam jallannya pekerjaan tersebut dari sudut pandang yang jelas dan tidak terhalang. Pekerjaan kemudian diurai menjadi gerakan dasar yang diamati satu per satu secara sistimatis mulai dari awal sampai akhir. Pengamat menilai setiap gerakan untuk menentukan mana yang perlu dihilangkan, digabung, atau disederhanakan tanpa mengurangi hasil pekerjaan. Setelah itu, pengamat merubah urutan gerakan agar cara kerja menjadi lebih baik. Alat yang umum digunakan dalam studi gerak adalah kamera vidio, lembar pengamatan, dan bagan pencatat gerakan yang dibawa pengamat. Rekaman dapat diputar ulang atau diperlambet sehingga gerakan yang cepat tetap dapat diperiksa dengan teliti dan berulang kali. Pengamatan dapat dilakukan pada satu pekerja atau pada beberapa pekerja yang mengerjakan tugas yang sama dalam waktu yang sama. Pemilihan alat sebaiknya disesuaikan dengan kebutuhan pengamatan dan tingkat kecermatna yang diharapkan oleh perusahaan. Manfaat studi gerak dirasakan oleh perusahaan maupun pekerja dalam kegiatan operasional sehari-hari. Perusahaan memperoleh cara kerja yang lebih efisien sehingga produktifitas dapat meningkat dari waktu ke waktu. Waktu pengerjaan menjadi lebih singkat, pemborosan tenaga kerja dapat ditekan, dan kwalitas hasil kerja lebih terjaga tanpa menambah jumlah pekerja. Pekerja mendapat cara kerja yang lebih nyman dan aman sehingga beban fisik dapat berkurang dan keluhan otot menurun selama jam kerja setiap hari. Hasil studi gerak juga memiliki beberapa keterbatasan yang perlu diperhatikan dengan baik sebelum hasilnya diterapkan. Pekerja yang merasa sedang direkam sering bekerja tidak seperti biassanya selama pengamatan berlangsung, sehingga data menjadi kurang mewakili kondisi sebenarnya. Perubahan cara kerja juga dapat membawa resiko cedera apabila tidak diuji terlebih dahulu dan pekerja belum terbiaza. Karena itu, hasil pengamatan perlu diperiksa dengan cermat oleh beberapa pengamat sebelum diterapkan pada seluruh bagian kerja perusahaan.";
+      const targetWordsB = [
+        "mengamtai",
+        "metoda",
+        "digabungkn",
+        "jallannya",
+        "sistimatis",
+        "merubah",
+        "vidio",
+        "diperlambet",
+        "kecermatna",
+        "produktifitas",
+        "kwalitas",
+        "nyman",
+        "biassanya",
+        "resiko",
+        "terbiaza",
+      ];
+
+      function processText(rawString, targetWords) {
+        const words = rawString.split(" ");
+        const error_indices = {};
+        words.forEach((w, idx) => {
+          const cleanW = w.replace(/[.,]/g, "");
+          if (targetWords.includes(cleanW)) {
+            error_indices[idx] = "error";
+          }
+        });
+        return { words, error_indices };
+      }
+
+      const stimA = processText(rawTextA, targetWordsA);
+      const stimB = processText(rawTextB, targetWordsB);
+      const currentUrutan = {
+        id: 4,
+        sesi1: { text: stimB, name: "Teks B", dist: true },
+        sesi2: { text: stimA, name: "Teks A", dist: false },
+      };
+
+      function buildProofreadingTrial(config, sessionNum, urutanId) {
+        const wordsArray = config.text.words;
+        const errorIndices = Object.keys(config.text.error_indices).map(Number);
+        const hasDistraction = config.dist;
+
+        const wordsHtml = wordsArray
+          .map(
+            (w, i) =>
+              `<span class="word" id="word-s${sessionNum}-${i}">${w}</span>`,
+          )
+          .join(" ");
+
+        return {
+          type: jsPsychHtmlKeyboardResponse,
+          data: {
+            task: "proofreading",
+            text_name: config.name,
+            distraction: hasDistraction,
+            urutan_group: urutanId,
+            session_num: sessionNum,
+          },
+          stimulus: `
+            <div class="timer-zone">Sisa Waktu: <span id="live-timer-s${sessionNum}">03:00</span></div>
+
+            <div class="w-full flex flex-col items-center">
+              <div class="text-container">${wordsHtml}</div>
+
+              <div class="mt-4 mb-20 pb-10">
+                <button id="submit-btn-s${sessionNum}" class="px-10 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded shadow transition-colors">
+                  Selesai
+                </button>
+              </div>
+            </div>
+
+            <div id="distraction-container-s${sessionNum}"></div>
+          `,
+          choices: "NO_KEYS",
+          on_load: function () {
+            let randomizedNotifications = [...notifications];
+            for (let i = randomizedNotifications.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [randomizedNotifications[i], randomizedNotifications[j]] = [
+                randomizedNotifications[j],
+                randomizedNotifications[i],
+              ];
+            }
+
+            const timersForThisTrial = [];
+            let timeLeft = 180;
+            let notifCount = 0;
+            let actualNotificationsShown = 0;
+            let clickLogs = [];
+            const sessionStartTime = performance.now();
+            const timerEl = document.getElementById(
+              `live-timer-s${sessionNum}`,
+            );
+
+            window.scrollTo(0, 0);
+
+            const timerInterval = setInterval(() => {
+              timeLeft--;
+              let m = Math.floor(timeLeft / 60)
+                .toString()
+                .padStart(2, "0");
+              let s = (timeLeft % 60).toString().padStart(2, "0");
+              timerEl.textContent = `${m}:${s}`;
+
+              const elapsed = 180 - timeLeft;
+
+              if (
+                hasDistraction &&
+                POPUP_SCHEDULE_SEC.includes(elapsed) &&
+                notifCount < randomizedNotifications.length
+              ) {
+                showNotification(notifCount);
+                notifCount++;
+                actualNotificationsShown++;
+              }
+
+              if (timeLeft <= 0) endTrial();
+            }, 1000);
+
+            let clickedIndices = new Set();
+            wordsArray.forEach((w, i) => {
+              const el = document.getElementById(`word-s${sessionNum}-${i}`);
+              el.addEventListener("click", function () {
+                const timeClicked = Math.round(
+                  performance.now() - sessionStartTime,
+                );
+                let actionType = "";
+
+                if (clickedIndices.has(i)) {
+                  clickedIndices.delete(i);
+                  el.classList.remove("clicked");
+                  actionType = "BATAL_PILIH";
+                } else {
+                  clickedIndices.add(i);
+                  el.classList.add("clicked");
+                  actionType = "PILIH";
+                }
+
+                clickLogs.push({
+                  waktu_ms: timeClicked,
+                  index_kata: i,
+                  kata: w,
+                  aksi: actionType,
+                });
+              });
+            });
+
+            function showNotification(index) {
+              const container = document.getElementById(
+                `distraction-container-s${sessionNum}`,
+              );
+              const msg = randomizedNotifications[index];
+              const initial = msg.sender.charAt(0).toUpperCase();
+
+              const popupBox = document.createElement("div");
+              popupBox.className = "popup-notification";
+
+              popupBox.innerHTML = `
+                <div class="popup-avatar">${initial}</div>
+                <div class="popup-content">
+                  <div class="popup-header">
+                    <span class="popup-name">${msg.sender}</span>
+                    <span class="popup-time">sekarang</span>
+                  </div>
+                  <div class="popup-message">${msg.msg}</div>
+                </div>
+              `;
+              container.appendChild(popupBox);
+
+              const hideTimer = setTimeout(() => {
+                popupBox.remove();
+              }, 3000);
+              timersForThisTrial.push(hideTimer);
+            }
+
+            function endTrial() {
+              clearInterval(timerInterval);
+              timersForThisTrial.forEach((t) => clearTimeout(t));
+
+              const clickedArray = Array.from(clickedIndices);
+              const correctlyClicked = clickedArray.filter((i) =>
+                errorIndices.includes(i),
+              ).length;
+              const incorrectlyClicked = clickedArray.filter(
+                (i) => !errorIndices.includes(i),
+              ).length;
+
+              jsPsychInstance.finishTrial({
+                time_seconds_taken: 180 - timeLeft,
+                n_error_total: errorIndices.length,
+                n_correctly_detected: correctlyClicked,
+                n_false_positive: incorrectlyClicked,
+                notifications_shown: actualNotificationsShown,
+                click_history: JSON.stringify(clickLogs),
+              });
+            }
+
+            document
+              .getElementById(`submit-btn-s${sessionNum}`)
+              .addEventListener("click", function () {
+                if (
+                  confirm(
+                    "Apakah Anda yakin ingin menyelesaikan teks ini? Sisa waktu Anda masih ada.",
+                  )
+                ) {
+                  endTrial();
+                }
+              });
+          },
+        };
+      }
+      let timeline = [];
+
+      timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+          <div class="flex flex-col items-center justify-center min-h-screen text-slate-200 w-full pt-16 pb-16">
+            <div class="p-10 rounded-lg max-w-2xl text-center">
+              <h1 class="text-3xl font-bold mb-6 text-white tracking-wide">Instruksi Tugas (Urutan ${currentUrutan.id})</h1>
+              <p class="mb-4 text-xl leading-relaxed text-left">
+                1. Tugas Anda adalah membaca teks dan menandai kata yang <strong>salah ketik (typo)</strong> atau <strong>tidak baku</strong>.<br><br>
+                2. Klik pada kata yang menurut Anda salah untuk menandainya. Jika ingin membatalkan, klik kembali kata tersebut.<br><br>
+                3. Anda memiliki waktu pengerjaan maksimal <strong>3 Menit</strong> untuk setiap teks.<br><br>
+                4. Anda akan melewati <strong>2 Sesi Teks</strong> pada tahap ini.<br><br>
+                5. Jika Anda sudah selesai mengecek teks, silakan tekan tombol <strong>"Selesai"</strong>.
+              </p>
+              <br>
+              <div class="px-8 py-3 bg-slate-700 rounded-lg inline-block font-bold">Tekan SPASI untuk mulai</div>
+            </div>
+          </div>
+        `,
+        choices: [" "],
+      });
+
+      function addCountdown() {
+        [3, 2, 1].forEach((num) => {
+          timeline.push({
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `<div class="flex items-center justify-center min-h-screen w-full"><div style="font-size: 80px; font-weight: bold; color: white;">${num}</div></div>`,
+            choices: "NO_KEYS",
+            trial_duration: 1000,
+          });
+        });
+      }
+
+      timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<div class="flex items-center justify-center min-h-screen w-full"><div class="text-4xl font-bold text-white">Memulai Sesi 1</div></div>`,
+        choices: "NO_KEYS",
+        trial_duration: 2000,
+      });
+      addCountdown();
+      timeline.push(
+        buildProofreadingTrial(currentUrutan.sesi1, 1, currentUrutan.id),
+      );
+
+      timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+          <div class="flex flex-col items-center justify-center min-h-screen w-full text-slate-200">
+            <h2 class="text-3xl mb-4">Waktu Istirahat (Sesi 1 Selesai)</h2>
+            <p class="text-lg text-slate-400 mb-8">Silakan istirahatkan mata Anda sejenak sebelum memulai Sesi 2.</p>
+            <div class="text-5xl font-mono" id="break-timer">00:30</div>
+            <p class="mt-8 text-sm text-slate-500">(Tekan SPASI jika ingin melewati istirahat)</p>
+          </div>
+        `,
+        choices: [" "],
+        trial_duration: 30000,
+        on_load: function () {
+          window.scrollTo(0, 0);
+          let breakTime = 30;
+          const breakInterval = setInterval(() => {
+            breakTime--;
+            let s = breakTime.toString().padStart(2, "0");
+            const el = document.getElementById("break-timer");
+            if (el) el.textContent = `00:${s}`;
+            if (breakTime <= 0) clearInterval(breakInterval);
+          }, 1000);
+        },
+      });
+
+      timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<div class="flex items-center justify-center min-h-screen w-full"><div class="text-4xl font-bold text-white">Memulai Sesi 2</div></div>`,
+        choices: "NO_KEYS",
+        trial_duration: 2000,
+      });
+      addCountdown();
+      timeline.push(
+        buildProofreadingTrial(currentUrutan.sesi2, 2, currentUrutan.id),
+      );
+
+      timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        choices: "NO_KEYS",
+        stimulus: function () {
+          const trials = jsPsychInstance.data
+            .get()
+            .filter({ task: "proofreading" })
+            .values();
+          let totalDurasi = 0,
+            totalBenar = 0,
+            totalSalahPilih = 0,
+            totalTarget = 0;
+
+          trials.forEach((t) => {
+            totalDurasi += t.time_seconds_taken || 0;
+            totalBenar += t.n_correctly_detected || 0;
+            totalSalahPilih += t.n_false_positive || 0;
+            totalTarget += t.n_error_total || 0;
+          });
+
+          const akurasi =
+            totalTarget > 0 ? Math.round((totalBenar / totalTarget) * 100) : 0;
+          const menit = Math.floor(totalDurasi / 60);
+          const detik = totalDurasi % 60;
+
+          return `
+            <div class="flex flex-col items-center justify-center min-h-screen text-slate-200 py-10 w-full">
+              <div class="p-10 rounded-2xl max-w-3xl text-center w-full bg-slate-800 border border-slate-700 shadow-2xl">
+                <h2 class="text-3xl font-bold mb-4 text-white">Selesai!</h2>
+                <p class="mb-8 text-slate-400">Berikut adalah akumulasi hasil Anda di Urutan ${currentUrutan.id}.</p>
+                
+                <div class="grid grid-cols-2 gap-6 text-left mb-8">
+                  <div class="bg-slate-900 p-5 rounded-xl border border-slate-600">
+                    <div class="text-sm text-slate-400 mb-1">Total Waktu (2 Sesi)</div>
+                    <div class="text-3xl font-bold text-white">${menit}m ${detik}s</div>
+                  </div>
+                  <div class="bg-slate-900 p-5 rounded-xl border border-slate-600">
+                    <div class="text-sm text-slate-400 mb-1">Rata-rata Akurasi</div>
+                    <div class="text-3xl font-bold text-white">${akurasi}%</div>
+                  </div>
+                  <div class="bg-slate-900 p-5 rounded-xl border border-slate-600">
+                    <div class="text-sm text-slate-400 mb-1">Kata Salah Ditemukan</div>
+                    <div class="text-3xl font-bold text-emerald-400">${totalBenar} <span class="text-sm text-slate-500 font-normal">/ ${totalTarget}</span></div>
+                  </div>
+                  <div class="bg-slate-900 p-5 rounded-xl border border-slate-600">
+                    <div class="text-sm text-slate-400 mb-1">Total Salah Tandai</div>
+                    <div class="text-3xl font-bold text-rose-400">${totalSalahPilih} <span class="text-sm text-slate-500 font-normal">Kata</span></div>
+                  </div>
+                </div>
+
+                <p class="text-slate-400 text-md mt-6">
+                  Terima kasih atas partisipasi Anda.<br>
+                  <strong class="text-white mt-2 inline-block" id="download-hint">Tekan SPASI untuk mengunduh Log Data (CSV).</strong>
+                </p>
+              </div>
+            </div>
+          `;
+        },
+        on_load: function () {
+          window.scrollTo(0, 0);
+
+          document.addEventListener(
+            "keydown",
+            function (e) {
+              if (e.code === "Space") {
+                e.preventDefault();
+
+                jsPsychInstance.data
+                  .get()
+                  .filter({ task: "proofreading" })
+                  .ignore("stimulus")
+                  .ignore("internal_node_id")
+                  .ignore("trial_type")
+                  .localSave(
+                    "csv",
+                    `Data_Eksperimen_Urutan_${currentUrutan.id}_${Date.now()}.csv`,
+                  );
+
+                const hintEl = document.getElementById("download-hint");
+                if (hintEl) {
+                  hintEl.innerText =
+                    "✓ Data berhasil diunduh. Anda dapat menutup tab ini.";
+                  hintEl.className =
+                    "text-emerald-400 mt-2 inline-block font-bold";
+                }
+              }
+            },
+            { once: true },
+          );
+        },
+      });
+
+      const jsPsychInstance = initJsPsych({
+        display_element: "jspsych-target",
+      });
+      jsPsychInstance.run(timeline);
+    </script>
+  </body>
+</html>
